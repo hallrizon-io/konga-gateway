@@ -1,0 +1,64 @@
+# sudo docker-compose up
+version: "3.7"
+services:
+
+
+  kong-database:
+    networks:
+      - kong-net
+    image: postgres:9.6
+    environment:
+      - POSTGRES_USER=kong
+      - POSTGRES_DB=kong
+      - POSTGRES_PASSWORD=kong
+    ports:
+      - "5432:5432"
+
+  kong-migration:
+    image: kong:latest
+    command: "kong migrations bootstrap"
+    networks:
+      - kong-net
+    restart: on-failure
+    environment:
+      KONG_PG_HOST: kong-database
+      KONG_PG_PASSWORD: kong
+    links:
+      - kong-database
+    depends_on:
+      - kong-database
+
+  kong:
+    networks:
+      - kong-net
+
+    image: kong:latest
+
+    # Use it from if database turn off
+    #volumes:
+    #  - ./kong.yml:/usr/local/kong/declarative/kong.yml
+
+    environment:
+      - KONG_DATABASE=postgres
+      - KONG_PG_HOST=kong-database
+      - KONG_PG_PASSWORD=kong
+      #- KONG_DATABASE=off
+      - KONG_DECLARATIVE_CONFIG=/usr/local/kong/declarative/kong.yml
+      - KONG_PROXY_ACCESS_LOG=/dev/stdout
+      - KONG_ADMIN_ACCESS_LOG=/dev/stdout
+      - KONG_PROXY_ERROR_LOG=/dev/stderr
+      - KONG_ADMIN_ERROR_LOG=/dev/stderr
+      - KONG_ADMIN_LISTEN=0.0.0.0:8001, 0.0.0.0:8444 ssl
+    ports:
+      - "8000:8000"
+      - "8443:8443"
+      - "127.0.0.1:8001:8001"
+      - "127.0.0.1:8444:8444"
+    depends_on:
+      - kong-migration
+
+
+networks:
+  kong-net:
+    driver: host
+    external: true

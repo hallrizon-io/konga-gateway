@@ -1,0 +1,30 @@
+# Crate consumer
+POST http://localhost:8001/consumers/
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; username="Kostya"
+
+field-value
+--WebAppBoundary--
+
+###
+
+
+# Testing detail todo withou JWT
+GET http://localhost:8000/todos/1
+Accept: application/json
+
+###
+
+# Testing list of todos withou JWT
+GET http://localhost:8000/todos
+Accept: application/json
+
+###
+
+# Kong Admin
+GET http://localhost:8001/services
+Accept: application/json
+
+###
